@@ -80,3 +80,17 @@ def post_flowers(flower: FlowerRequestResponse, db: Session = Depends(get_db)):
 def get_flowers(db: Session = Depends(get_db)):
     flowers = flowers_repository.get_flowers(db)
     return flowers
+
+@app.patch("/flowers/{flower_id}")
+def patch_flower(flower_id: int, flower: FlowerRequestResponse, db: Session = Depends(get_db)):
+    db_flower = flowers_repository.update_flower(db, flower_id, flower)
+    if db_flower is None:
+        raise HTTPException(status_code=404, detail="Flower not found")
+    return Response(status_code=200)
+
+@app.delete("/flowers/{flower_id}")
+def delete_flower(flower_id: int, db: Session = Depends(get_db)):
+    db_flower = flowers_repository.delete_flower(db, flower_id)
+    if db_flower is None:
+        raise HTTPException(status_code=404, detail="Flower not found")
+    return Response(status_code=200) 
