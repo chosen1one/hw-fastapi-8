@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException, Response, Form
+from fastapi import FastAPI, Depends, HTTPException, Response, Form, Cookie, Request
 from fastapi.security import OAuth2PasswordBearer
 
+import json
 from jose import jwt
 
 from sqlalchemy.orm import Session
@@ -94,3 +95,17 @@ def delete_flower(flower_id: int, db: Session = Depends(get_db)):
     if db_flower is None:
         raise HTTPException(status_code=404, detail="Flower not found")
     return Response(status_code=200) 
+
+@app.get("/cart/items")
+def get_items(
+    request: Request,
+    cart_items: str = Cookie(default="[]"),
+    db: Session = Depends(get_db)
+):
+    cart_items = json.loads(cart_items)
+    flowers = [flowers_repository.get_flower(db, id) for id in cart_items]
+    total = sum(flower.cost for flower in flowers)
+    return {
+        "flowers": [{"name": flower.name, "cost": flower.cost, "count": flower.count} for flower in flowers],
+        "Total Price": total
+    }
